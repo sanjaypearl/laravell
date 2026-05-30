@@ -4,7 +4,6 @@ jobs:
   deploy:
     docker:
       - image: cimg/base:stable
-    working_directory: /var/www/projects/readytomovie/
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -22,7 +21,6 @@ workflows:
   build-test-deploy:
     jobs:
       - deploy
-
 
 
 
