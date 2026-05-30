@@ -1,118 +1,157 @@
 version: 2.1
 
-orbs:
-  node: circleci/node@5.2.0
-
-executors:
-  node-executor:
-    docker:
-      - image: cimg/node:20.11
-    working_directory: /var/www/projects/readytomovie/
-
 jobs:
-
-  install:
-    executor: node-executor
-    steps:
-      - checkout
-
-      - node/install-packages:
-          pkg-manager: npm
-
-      - persist_to_workspace:
-          root: /var/www/projects/readytomovie/
-          paths:
-            - .
-
-  lint:
-    executor: node-executor
-    steps:
-      - attach_workspace:
-          at: /var/www/projects/readytomovie/
-
-      - run:
-          name: Run ESLint
-          command: npm run lint
-
-  test:
-    executor: node-executor
-    steps:
-      - attach_workspace:
-          at: /var/www/projects/readytomovie/
-
-      - run:
-          name: Run Tests
-          command: npm test -- --watchAll=false --ci
-
-  build:
-    executor: node-executor
-    steps:
-      - attach_workspace:
-          at: /var/www/projects/readytomovie/
-
-      - run:
-          name: Build React App
-          command: npm run build
-          environment:
-            NODE_ENV: production
-
-      - persist_to_workspace:
-          root: /var/www/projects/readytomovie/
-          paths:
-            - build/
-
   deploy:
-    executor: node-executor
+    docker:
+      - image: cimg/base:stable
+    working_directory: $LOCATION
     steps:
-      - attach_workspace:
-          at: /var/www/projects/readytomovie/
-
       - add_ssh_keys:
           fingerprints:
             - "SHA256:uCtOaAnO5Ry9H0y2uy0j5RjqniUljjkaR+fC4zyUF0I"
-
       - run:
           name: Add VPS to known hosts
           command: |
             mkdir -p ~/.ssh
-            ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
-
+            ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
       - run:
-          name: Deploy build to VPS
-          command: |
-            rsync -avz --delete \
-              --exclude='.git' \
-              ./build/ \
-              $VPS_USER@$VPS_HOST:/var/www/projects/readytomovie/
-
-      - run:
-          name: Reload Nginx
-          command: |
-            ssh $VPS_USER@$VPS_HOST "sudo systemctl reload nginx"
+          name: Say Hello on VPS
+          command: ssh $VPS_USER@$HOST "echo hello"
 
 workflows:
   build-test-deploy:
     jobs:
-      - install
+      - deploy
 
-      - lint:
-          requires:
-            - install
 
-      - test:
-          requires:
-            - install
 
-      - build:
-          requires:
-            - lint
-            - test
 
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only:
-                - main
+
+
+
+
+
+
+
+
+
+
+
+# version: 2.1
+
+# orbs:
+#   node: circleci/node@5.2.0
+
+# executors:
+#   node-executor:
+#     docker:
+#       - image: cimg/node:20.11
+#     working_directory: /var/www/projects/readytomovie/
+
+# jobs:
+
+#   install:
+#     executor: node-executor
+#     steps:
+#       - checkout
+
+#       - node/install-packages:
+#           pkg-manager: npm
+
+#       - persist_to_workspace:
+#           root: /var/www/projects/readytomovie/
+#           paths:
+#             - .
+
+#   lint:
+#     executor: node-executor
+#     steps:
+#       - attach_workspace:
+#           at: /var/www/projects/readytomovie/
+
+#       - run:
+#           name: Run ESLint
+#           command: npm run lint
+
+#   test:
+#     executor: node-executor
+#     steps:
+#       - attach_workspace:
+#           at: /var/www/projects/readytomovie/
+
+#       - run:
+#           name: Run Tests
+#           command: npm test -- --watchAll=false --ci
+
+#   build:
+#     executor: node-executor
+#     steps:
+#       - attach_workspace:
+#           at: /var/www/projects/readytomovie/
+
+#       - run:
+#           name: Build React App
+#           command: npm run build
+#           environment:
+#             NODE_ENV: production
+
+#       - persist_to_workspace:
+#           root: /var/www/projects/readytomovie/
+#           paths:
+#             - build/
+
+#   deploy:
+#     executor: node-executor
+#     steps:
+#       - attach_workspace:
+#           at: /var/www/projects/readytomovie/
+
+#       - add_ssh_keys:
+#           fingerprints:
+#             - "SHA256:uCtOaAnO5Ry9H0y2uy0j5RjqniUljjkaR+fC4zyUF0I"
+
+#       - run:
+#           name: Add VPS to known hosts
+#           command: |
+#             mkdir -p ~/.ssh
+#             ssh-keyscan -H $VPS_HOST >> ~/.ssh/known_hosts
+
+#       - run:
+#           name: Deploy build to VPS
+#           command: |
+#             rsync -avz --delete \
+#               --exclude='.git' \
+#               ./build/ \
+#               $VPS_USER@$VPS_HOST:/var/www/projects/readytomovie/
+
+#       - run:
+#           name: Reload Nginx
+#           command: |
+#             ssh $VPS_USER@$VPS_HOST "sudo systemctl reload nginx"
+
+# workflows:
+#   build-test-deploy:
+#     jobs:
+#       - install
+
+#       - lint:
+#           requires:
+#             - install
+
+#       - test:
+#           requires:
+#             - install
+
+#       - build:
+#           requires:
+#             - lint
+#             - test
+
+#       - deploy:
+#           requires:
+#             - build
+#           filters:
+#             branches:
+#               only:
+#                 - main
                 
