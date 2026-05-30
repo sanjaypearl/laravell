@@ -4,7 +4,7 @@ jobs:
   deploy:
     docker:
       - image: cimg/base:stable
-    working_directory: $LOCATION
+    working_directory: /var/www/projects/readytomovie/
     steps:
       - add_ssh_keys:
           fingerprints:
@@ -13,16 +13,15 @@ jobs:
           name: Add VPS to known hosts
           command: |
             mkdir -p ~/.ssh
-            ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+            ssh-keyscan -H $host >> ~/.ssh/known_hosts
       - run:
           name: Say Hello on VPS
-          command: ssh $VPS_USER@$HOST "echo hello"
+          command: ssh $vps_user@$host "echo hello"
 
 workflows:
   build-test-deploy:
     jobs:
       - deploy
-
 
 
 
